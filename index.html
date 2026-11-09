@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book a Showroom Visit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Jost:wght@400;500;600&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --walnut:#4A3225; --bone:#F4EEE3; --brass:#B08D57; --sage:#8A9A7B;
+  --card:#FFFDF8; --line:#E3D9C7; --muted:#7A6A5C; --err:#B3412F;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--walnut);font-family:'Jost',sans-serif;line-height:1.5}
+html[lang=ar] body{font-family:'Cairo',sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding:28px 18px 60px}
+header{text-align:center;margin-bottom:22px;position:relative}
+h1{font-family:'Playfair Display',serif;font-weight:500;font-size:30px;margin:6px 0 4px}
+html[lang=ar] h1{font-family:'Cairo',sans-serif;font-weight:700}
+.sub{color:var(--muted);margin:0}
+.brand{letter-spacing:.2em;text-transform:uppercase;font-size:12px;color:var(--brass);font-weight:600}
+.lang{position:absolute;top:0;inset-inline-end:0;background:none;border:1px solid var(--line);border-radius:20px;padding:5px 12px;color:var(--walnut);cursor:pointer;font:inherit;font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.step{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-weight:600}
+.step i{width:24px;height:24px;border-radius:50%;background:var(--walnut);color:var(--bone);display:grid;place-items:center;font-style:normal;font-size:13px}
+.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.day{flex:0 0 auto;min-width:68px;text-align:center;padding:9px 8px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;color:var(--walnut);font:inherit}
+.day b{display:block;font-size:19px;font-weight:600}
+.day small{color:var(--muted);font-size:12px}
+.day.sel{background:var(--walnut);color:var(--bone);border-color:var(--walnut)}
+.day.sel small{color:#d9ccb8}
+.day:disabled{opacity:.38;cursor:not-allowed;background:transparent;text-decoration:line-through}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.slot{padding:10px 6px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;font:inherit;color:var(--walnut)}
+.slot.sel{background:var(--brass);border-color:var(--brass);color:#fff;font-weight:600}
+.slot:disabled{opacity:.38;cursor:not-allowed;background:transparent;text-decoration:line-through}
+.hint{color:var(--muted);font-size:14px;margin:0}
+label{display:block;font-size:14px;font-weight:500;margin:14px 0 5px}
+label span{color:var(--muted);font-weight:400}
+input,textarea{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;color:var(--walnut)}
+input:focus,textarea:focus{outline:2px solid var(--brass);outline-offset:0;border-color:var(--brass)}
+textarea{min-height:76px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.btn{width:100%;margin-top:18px;padding:15px;border:0;border-radius:12px;background:var(--walnut);color:var(--bone);font:inherit;font-size:17px;font-weight:600;cursor:pointer}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.alt{background:transparent;color:var(--walnut);border:1px solid var(--walnut);margin-top:10px;display:block;text-align:center;text-decoration:none}
+.err{color:var(--err);font-size:14px;margin:12px 0 0;min-height:1em}
+.summary{background:var(--bone);border-radius:10px;padding:14px;margin:14px 0;font-size:15px}
+.ok{text-align:center}
+.ok .tick{width:56px;height:56px;border-radius:50%;background:var(--sage);color:#fff;display:grid;place-items:center;font-size:28px;margin:0 auto 10px}
+.hp{position:absolute;left:-9999px;opacity:0}
+.skel{height:48px;border-radius:10px;background:linear-gradient(90deg,#eee6d6,#f7f1e4,#eee6d6);background-size:200% 100%;animation:s 1.2s infinite}
+@keyframes s{to{background-position:-200% 0}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <button class="lang" id="langBtn" type="button">العربية</button>
+    <div class="brand" id="brand">El Eraky Furniture</div>
+    <h1 data-i="title">Book a showroom visit</h1>
+    <p class="sub" data-i="sub">Pick a day and time, and we'll have everything ready for you.</p>
+  </header>
+
+  <div id="loadErr" class="card" hidden>
+    <p class="err" data-i="loadErr">Couldn't load available times. Please refresh the page.</p>
+  </div>
+
+  <form id="form" autocomplete="on" novalidate>
+    <div class="card">
+      <p class="step"><i>1</i><span data-i="s1">Choose a day</span></p>
+      <div class="days" id="days"><div class="skel" style="width:100%"></div></div>
+    </div>
+
+    <div class="card">
+      <p class="step"><i>2</i><span data-i="s2">Choose a time</span></p>
+      <p class="hint" id="slotHint" data-i="pickDay">Select a day first.</p>
+      <div class="slots" id="slots" hidden></div>
+    </div>
+
+    <div class="card">
+      <p class="step"><i>3</i><span data-i="s3">Your details</span></p>
+      <div class="row">
+        <div><label for="name" data-i="name">Full name</label><input id="name" name="name" autocomplete="name" required maxlength="80"></div>
+        <div><label for="phone" data-i="phone">Phone / WhatsApp</label><input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required maxlength="20" placeholder="01xxxxxxxxx"></div>
+      </div>
+      <label for="email"><span data-i="email">Email</span> <span data-i="opt">(optional)</span></label>
+      <input id="email" name="email" type="email" autocomplete="email" maxlength="100">
+      <label for="piece"><span data-i="piece">Piece you're interested in</span> <span data-i="opt">(optional)</span></label>
+      <input id="piece" name="piece" list="pieces" maxlength="120" data-ph="piecePh">
+      <datalist id="pieces"></datalist>
+      <label for="notes"><span data-i="notes">Anything we should know?</span> <span data-i="opt">(optional)</span></label>
+      <textarea id="notes" name="notes" maxlength="500"></textarea>
+      <input class="hp" id="website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" id="submit" type="submit" data-i="submit">Confirm booking</button>
+    </div>
+  </form>
+
+  <div id="done" class="card ok" hidden>
+    <div class="tick">✓</div>
+    <h2 style="font-family:'Playfair Display',serif;margin:0" data-i="doneT">Your visit is booked</h2>
+    <div class="summary" id="sum"></div>
+    <p class="hint" data-i="doneP">We'll contact you on your phone to confirm.</p>
+    <a class="btn alt" id="cal" target="_blank" rel="noopener" data-i="addCal">Add to Google Calendar</a>
+    <button class="btn alt" id="again" type="button" data-i="again">Book another visit</button>
+  </div>
+</div>
+
+<script>
+/* ====== EDIT THIS ONE LINE after deploying the Apps Script ====== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzS9k9tpgePFmf3Qf5i_zkWZot-qyUdeAbj8c1xGZG8NHeVALcJg2dephg1Ob5oCLb5/exec";
+/* ================================================================ */
+
+const T = {
+  en:{title:"Book a showroom visit",sub:"Pick a day and time, and we'll have everything ready for you.",s1:"Choose a day",s2:"Choose a time",s3:"Your details",
+    pickDay:"Select a day first.",name:"Full name",phone:"Phone / WhatsApp",email:"Email",opt:"(optional)",piece:"Piece you're interested in",
+    piecePh:"e.g. dining table, armchair…",notes:"Anything we should know?",submit:"Confirm booking",sending:"Booking…",
+    doneT:"Your visit is booked",doneP:"We'll contact you on your phone to confirm.",addCal:"Add to Google Calendar",again:"Book another visit",
+    loadErr:"Couldn't load available times. Please refresh the page.",noSlots:"No free times on this day.",
+    e_pick:"Please choose a day and a time.",e_name:"Please enter your name.",e_phone:"Please enter a valid phone number.",e_email:"That email doesn't look right.",
+    e_taken:"Sorry, that time was just taken. Please pick another.",e_server:"Something went wrong. Please try again.",lang:"العربية",
+    when:"When",who:"Name",pc:"Piece"},
+  ar:{title:"احجز زيارة للمعرض",sub:"اختر اليوم والموعد وسنجهّز كل شيء لاستقبالك.",s1:"اختر اليوم",s2:"اختر الموعد",s3:"بياناتك",
+    pickDay:"اختر اليوم أولاً.",name:"الاسم بالكامل",phone:"رقم الهاتف / واتساب",email:"البريد الإلكتروني",opt:"(اختياري)",piece:"القطعة التي تهمك",
+    piecePh:"مثال: ترابيزة سفرة، كرسي…",notes:"هل هناك ما تود إخبارنا به؟",submit:"تأكيد الحجز",sending:"جارٍ الحجز…",
+    doneT:"تم حجز زيارتك",doneP:"سنتواصل معك على هاتفك للتأكيد.",addCal:"أضف إلى تقويم جوجل",again:"احجز زيارة أخرى",
+    loadErr:"تعذّر تحميل المواعيد المتاحة. برجاء إعادة تحميل الصفحة.",noSlots:"لا توجد مواعيد متاحة في هذا اليوم.",
+    e_pick:"برجاء اختيار اليوم والموعد.",e_name:"برجاء إدخال اسمك.",e_phone:"برجاء إدخال رقم هاتف صحيح.",e_email:"البريد الإلكتروني غير صحيح.",
+    e_taken:"عذراً، تم حجز هذا الموعد للتو. برجاء اختيار موعد آخر.",e_server:"حدث خطأ. برجاء المحاولة مرة أخرى.",lang:"English",
+    when:"الموعد",who:"الاسم",pc:"القطعة"}
+};
+let lang = (localStorage.getItem("lang") || ((navigator.language||"").startsWith("ar") ? "ar" : "en"));
+let data = null, selDate = null, selTime = null, last = null;
+const $ = id => document.getElementById(id);
+const t = k => T[lang][k];
+
+function pad(n){return String(n).padStart(2,"0")}
+function dObj(ds,time){const [y,m,d]=ds.split("-").map(Number);const [h,mi]=(time||"12:00").split(":").map(Number);return new Date(y,m-1,d,h,mi)}
+const loc = () => lang==="ar" ? "ar-EG" : "en-GB";
+const fmtTime = tm => dObj("2000-01-01",tm).toLocaleTimeString(loc(),{hour:"numeric",minute:"2-digit",hour12:true});
+const fmtDay = ds => dObj(ds).toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"});
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang==="ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i]").forEach(el=>{ el.textContent = t(el.dataset.i); });
+  document.querySelectorAll("[data-ph]").forEach(el=>{ el.placeholder = t(el.dataset.ph); });
+  $("langBtn").textContent = t("lang");
+  if(data){ renderDays(); renderSlots(); }
+  if(last && !$("done").hidden) showDone();
+}
+$("langBtn").onclick = ()=>{ lang = lang==="ar" ? "en" : "ar"; localStorage.setItem("lang",lang); applyLang(); };
+
+function renderDays(){
+  const box = $("days"); box.innerHTML = "";
+  data.days.forEach(d=>{
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "day" + (d.date===selDate ? " sel" : "");
+    b.disabled = d.closed;
+    const dt = dObj(d.date);
+    b.innerHTML = `<small>${dt.toLocaleDateString(loc(),{weekday:"short"})}</small><b>${dt.toLocaleDateString(loc(),{day:"numeric"})}</b><small>${dt.toLocaleDateString(loc(),{month:"short"})}</small>`;
+    b.onclick = ()=>{ selDate = d.date; selTime = null; renderDays(); renderSlots(); };
+    box.appendChild(b);
+  });
+}
+function renderSlots(){
+  const box = $("slots"), hint = $("slotHint");
+  if(!selDate){ box.hidden = true; hint.hidden = false; hint.textContent = t("pickDay"); return; }
+  const day = data.days.find(d=>d.date===selDate);
+  box.innerHTML = "";
+  if(!day || !day.slots.some(s=>s.a)){ box.hidden = true; hint.hidden = false; hint.textContent = t("noSlots"); return; }
+  hint.hidden = true; box.hidden = false;
+  day.slots.forEach(s=>{
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "slot" + (s.t===selTime ? " sel" : "");
+    b.disabled = !s.a; b.textContent = fmtTime(s.t);
+    b.onclick = ()=>{ selTime = s.t; renderSlots(); };
+    box.appendChild(b);
+  });
+}
+
+async function load(keepSel){
+  try{
+    const r = await fetch(SCRIPT_URL);
+    const j = await r.json();
+    if(!j.ok) throw 0;
+    data = j; $("loadErr").hidden = true;
+    if($("brand")) $("brand").textContent = j.showroom || "El Eraky Furniture";
+    $("pieces").innerHTML = (j.pieces||[]).map(p=>`<option value="${p.replace(/"/g,"&quot;")}">`).join("");
+    if(!keepSel){ selDate = null; selTime = null; }
+    renderDays(); renderSlots();
+  }catch(e){
+    $("loadErr").hidden = false; $("days").innerHTML = "";
+  }
+}
+
+function showDone(){
+  const f = last;
+  $("sum").innerHTML = `<div><b>${t("when")}:</b> ${fmtDay(f.date)} — ${fmtTime(f.time)}</div><div><b>${t("who")}:</b> ${esc(f.name)}</div>` + (f.piece ? `<div><b>${t("pc")}:</b> ${esc(f.piece)}</div>` : "");
+  const s = dObj(f.date,f.time), e = new Date(s.getTime() + (data.slotMinutes||60)*60000);
+  const z = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  $("cal").href = "https://calendar.google.com/calendar/render?action=TEMPLATE&ctz=Africa/Cairo&text=" +
+    encodeURIComponent("Showroom visit — " + (data.showroom||"El Eraky Furniture")) + "&dates=" + z(s) + "/" + z(e);
+  $("form").hidden = true; $("done").hidden = false; window.scrollTo({top:0,behavior:"smooth"});
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+$("form").addEventListener("submit", async ev=>{
+  ev.preventDefault();
+  const err = m => { $("err").textContent = m || ""; };
+  err("");
+  const body = {
+    date: selDate, time: selTime,
+    name: $("name").value.trim(), phone: $("phone").value.trim(),
+    email: $("email").value.trim(), piece: $("piece").value.trim(),
+    notes: $("notes").value.trim(), website: $("website").value
+  };
+  if(!body.date || !body.time) return err(t("e_pick"));
+  if(body.name.length < 2) return err(t("e_name"));
+  if(!/^\+?[0-9][0-9\s\-]{7,18}$/.test(body.phone)) return err(t("e_phone"));
+  if(body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) return err(t("e_email"));
+
+  const btn = $("submit"); btn.disabled = true; btn.textContent = t("sending");
+  try{
+    // text/plain avoids a CORS preflight, which Apps Script doesn't support
+    const r = await fetch(SCRIPT_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)});
+    const j = await r.json();
+    if(j.ok){ last = body; showDone(); }
+    else if(j.error==="taken"){ err(t("e_taken")); selTime = null; await load(true); }
+    else err(j.error==="phone" ? t("e_phone") : j.error==="name" ? t("e_name") : j.error==="email" ? t("e_email") : t("e_server"));
+  }catch(e){ err(t("e_server")); }
+  btn.disabled = false; btn.textContent = t("submit");
+});
+
+$("again").onclick = ()=>{
+  $("form").reset(); $("form").hidden = false; $("done").hidden = true; last = null;
+  load(false);
+};
+
+applyLang();
+load(false);
+</script>
+</body>
+</html>
